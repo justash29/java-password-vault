@@ -141,36 +141,7 @@ public class GUI {
 // ===== MASTER PASSWORD PROMPT =====
         
         // ======= HOOK for SHUTDOWN =======
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("[Shutdown Hook] Running cleanup command...");
- 
-            try {
-                // SECURITY CRITICAL: Wipe master password from memory before JVM exits
-                // Prevents sensitive data staying in memory heap which mitigates memory dump attacks
-                Backend.wipeCharArray(masterPassword);
-
-                // Using ProcessBuilder is safer than Runtime.exec() — avoids shell injection
-                // Say goodnight to tell me we are gracefully shutdown.
-                ProcessBuilder pb = isWindows
-                    ? new ProcessBuilder("cmd.exe", "/c", "Goodbye...")
-                    : new ProcessBuilder("echo", "Goodbye...");
-                    // e.g. "bash", "-c", "your-script.sh"
-                    // e.g. "python3", "/opt/cleanup.py"
- 
-                // Inherit stdout/stderr so output is visible in the terminal
-                pb.inheritIO();
- 
-                Process process = pb.start();
-                int exitCode = process.waitFor();
- 
-                System.out.println(exitCode);
- 
-            } catch (Exception e) {
-                // Log but don't rethrow — throwing inside a hook is silently ignored
-                System.err.println("[Shutdown Hook] Failed to run command: " + e.getMessage());
-            }
-        }, "shutdown-hook-thread"));
-
+       Utilities.registerShutdownHook(masterPassword, isWindows);
 
         if (isNew) {
             while (true) {
